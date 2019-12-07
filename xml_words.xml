@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<KeyWords>
+  <name file = "h cpp">
+	<word>\bbool\b</word>
+  	<word>\bchar\b</word>
+  	<word>\bclass\b</word>
+  	<word>\bconst\b</word>
+  	<word>\bdouble\b </word>
+  	<word>\benum\b</word>
+  	<word>\bexplicit\b</word>
+  	<word>\bfriend\b</word>
+	<word>\binclude\b</word>
+  	<word>\binline\b</word>
+  	<word>\bint\b</word>
+  	<word>\blong\b</word>
+  	<word>\bnamespace\b</word>
+  	<word>\boperator\b</word>
+  	<word>\bprivate\b</word>
+  	<word>\bprotected\b</word>
+  	<word>\bpublic\b</word>
+  	<word>\bshort\b</word>
+  	<word>\bsignals\b</word>
+  	<word>\bsigned\b</word>
+  	<word>\bslots\b</word>
+  	<word>\bstatic\b</word>
+  	<word>\bstruct\b</word>
+  	<word>\btemplate\b</word>
+  	<word>\btypedef\\b</word>
+  	<word>\btypename\b</word>
+  	<word>\\bunion\b</word>
+  	<word>\bunsigned\b</word>
+  	<word>\bvirtual\b</word>
+  	<word>\bvoid\b</word>
+  	<word>\bvolatile\b</word>
+  </name>
+
+</KeyWords>
