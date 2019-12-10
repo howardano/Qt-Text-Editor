@@ -9,16 +9,12 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <QPrinter>
+#include <QLCDNumber>
 #include <QPrintDialog>
 #include <QListView>
-/*#include <QDockWidget>
-#include <QFileSystemModel>
-#include <QtCore>
-#include <QtGui>*/
 #include "file.h"
 #include "ui_file.h"
 #include "widgetchanger.h"
-//#include "ui_widgetchanger.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,9 +31,13 @@ public:
 
     void setFile(QString &file);
 
+    void closeEvent(QCloseEvent *event);
+
     friend class WidgetChanger;
 
 private slots:
+
+    void on_plainTextEdit_cursorPositionChanged();
 
     void on_actionNew_triggered();
 
@@ -67,19 +67,26 @@ private slots:
 
     void on_actionClose_all_triggered();
 
+    void on_plainTextEdit_textChanged();
+
     void on_actionSelect_all_triggered();
 
     void on_actionShow_folder_triggered();
+
+    void text_in_tab_edited(int index);
 
     void on_treeView_doubleClicked(const QModelIndex &index);
 
     void on_actionShow_second_thing_triggered();
 
-    void on_dockWidget_3_visibilityChanged(bool visible);
-
     void on_listView_clicked(const QModelIndex &index);
 
+    void on_actionShow_status_bar_triggered();
+
+    void on_tabWidget_tabBarClicked(int index);
+
 private:
+    int numberOfSigns = 0;
     void setupEditor(QPlainTextEdit * editor);
     QFileSystemModel * fileMdl;
     QPlainTextEdit * editor1;

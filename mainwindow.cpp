@@ -8,20 +8,26 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->dockWidget->setStyleSheet("border: 1px solid lightgray");
+    ui->tabWidget->setFocusPolicy(Qt::StrongFocus);
     ui->treeView->setMaximumSize(400, 541);
-    ui->dockWidget_3->setMinimumSize(1359, 129);
+    ui->dockWidget_3->setMinimumSize(1359, 100);
     ui->dockWidget_3->setMaximumWidth(1359);
     ui->dockWidget_3->setVisible(false);
-    ui->dockWidget->setMinimumSize(400, 541);
-    ui->dockWidget->setMaximumSize(400, 700);
+    ui->dockWidget_2->setMinimumSize(1359, 80);
+    ui->dockWidget_2->setMaximumSize(1359, 80);
+    ui->dockWidget->setMinimumWidth(400);
+    ui->dockWidget->setMaximumWidth(400);
+    ui->dockWidget->resize(400, 900);
     ui->dockWidget->setVisible(false);
     editor1 = new QPlainTextEdit();
-    ui->tabWidget->setMaximumSize(1195, 541);
+    ui->tabWidget->setMaximumSize(1195, 700);
     ui->tabWidget->clear();
     on_actionNew_triggered();
     setCentralWidget(ui->tabWidget);
     setWindowTitle("Text Editor");
     setupEditor(editor1);
+
 }
 
 MainWindow::~MainWindow()
@@ -29,11 +35,52 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::closeEvent(QCloseEvent *event) {
+    QPlainTextEdit * pTextEdit;
+    for (int i = 0; i < ui->tabWidget->count(); ++i) {
+        pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(i));
+        QString str = pTextEdit->document()->toPlainText();
+        QFile file(ui->tabWidget->tabText(i));
+        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+            QApplication::quit();
+        }
+        QTextStream in(&file);
+        QString ty = in.readAll();
+        if (str.isEmpty() == false && str != ty) {
+                QMessageBox msgBox;
+                msgBox.setText("The document " + ui->tabWidget->tabText(i) + " has been modified.");
+                msgBox.setInformativeText("Do you want to save your changes?");
+                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::No | QMessageBox::Cancel);
+                msgBox.setDefaultButton(QMessageBox::Save);
+                int ret = msgBox.exec();
+                switch (ret) {
+                  case QMessageBox::Save:
+                      on_actionSave_triggered();
+                      QApplication::quit();
+                      break;
+                  case QMessageBox::No:
+                      QApplication::quit();
+                      break;
+                  case QMessageBox::Cancel:
+                      event->ignore();
+                      break;
+                  default:
+                      event->ignore();
+                      break;
+             }
+         }
+     }
+}
+
 void MainWindow::on_actionNew_triggered()
 {
-    QPlainTextEdit * helper = new QPlainTextEdit;
+    ui->lcdNumber->display(0);
+    ui->lcdNumber_2->display(0);
+    QPlainTextEdit * helper = new QPlainTextEdit();
     setupEditor(helper);
     ui->tabWidget->addTab(helper, QString("default %0").arg(ui->tabWidget->count() + 1));
+    connect(helper, SIGNAL(cursorPositionChanged()), SLOT(on_plainTextEdit_cursorPositionChanged()));
+    connect(helper, SIGNAL(textChanged()), SLOT(on_plainTextEdit_textChanged()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
     currentFile.clear();
     if (ui->listView->isVisible() == true) {
@@ -61,6 +108,7 @@ void MainWindow::setFile(QString &fileName) {
     QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->currentWidget());
     setupEditor(pTextEdit);
     pTextEdit->setPlainText(text);
+
     file.close();
     if (ui->listView->isVisible() == true) {
         on_actionShow_second_thing_triggered();
@@ -112,14 +160,16 @@ void MainWindow::on_actionExit_triggered()
                 QMessageBox msgBox;
                 msgBox.setText("The document " + ui->tabWidget->tabText(i) + " has been modified.");
                 msgBox.setInformativeText("Do you want to save your changes?");
-                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::No | QMessageBox::Cancel);
                 msgBox.setDefaultButton(QMessageBox::Save);
                 int ret = msgBox.exec();
                 switch (ret) {
                   case QMessageBox::Save:
                       on_actionSave_triggered();
+                      QApplication::quit();
                       break;
-                  case QMessageBox::Discard:
+                  case QMessageBox::No:
+                      QApplication::quit();
                       break;
                   case QMessageBox::Cancel:
                       break;
@@ -127,8 +177,10 @@ void MainWindow::on_actionExit_triggered()
                       break;
             }
          }
-      }
-    QApplication::quit();
+        else {
+             QApplication::quit();
+        }
+     }
 }
 
 void MainWindow::on_actionCopy_triggered()
@@ -180,7 +232,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
            QMessageBox msgBox;
            msgBox.setText("The document has been modified.");
            msgBox.setInformativeText("Do you want to save your changes?");
-           msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard);
+           msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::No);
            msgBox.setDefaultButton(QMessageBox::Save);
            int ret = msgBox.exec();
             switch (ret) {
@@ -191,7 +243,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
                       on_actionShow_second_thing_triggered();
                   }
                   break;
-              case QMessageBox::Discard:
+              case QMessageBox::No:
                   break;
               default:
                   break;
@@ -249,14 +301,14 @@ void MainWindow::on_actionClose_all_triggered()
                 QMessageBox msgBox;
                 msgBox.setText("The document " + ui->tabWidget->tabText(i) + " has been modified.");
                 msgBox.setInformativeText("Do you want to save your changes?");
-                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+                msgBox.setStandardButtons(QMessageBox::Save | QMessageBox::No | QMessageBox::Cancel);
                 msgBox.setDefaultButton(QMessageBox::Save);
                 int ret = msgBox.exec();
                 switch (ret) {
                   case QMessageBox::Save:
                       on_actionSave_triggered();
                       break;
-                  case QMessageBox::Discard:
+                  case QMessageBox::No:
                       break;
                   case QMessageBox::Cancel:
                       break;
@@ -310,7 +362,6 @@ void MainWindow::on_actionShow_folder_triggered()
     ui->dockWidget->setVisible(true);
     ui->treeView->resize(400, 512);
     ui->dockWidget->resize(400, 512);
-    //resize(1100, 570);
 }
 
 void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
@@ -322,9 +373,6 @@ void MainWindow::on_treeView_doubleClicked(const QModelIndex &index)
 void MainWindow::on_actionShow_second_thing_triggered()
 {
     ui->dockWidget_3->setVisible(true);
-    setMinimumSize(1195, 747);
-    setMaximumSize(1195, 747);
-    resize(1195, 747);
     QStringList list;
     for (int i = 0; i < ui->tabWidget->count(); ++i) {
         list << ui->tabWidget->tabText(i);
@@ -332,13 +380,6 @@ void MainWindow::on_actionShow_second_thing_triggered()
     QStringListModel * mdl = new QStringListModel();
     mdl->setStringList(list);
     ui->listView->setModel(mdl);
-}
-
-void MainWindow::on_dockWidget_3_visibilityChanged(bool visible)
-{
-    setMinimumSize(1195, 610);
-    setMaximumSize(1195, 610);
-    resize(1195, 560);
 }
 
 void MainWindow::on_listView_clicked(const QModelIndex &index)
@@ -349,4 +390,55 @@ void MainWindow::on_listView_clicked(const QModelIndex &index)
             break;
         }
     }
+}
+
+void MainWindow::text_in_tab_edited(int index) {
+    ui->tabWidget->setTabText(index, "" + ui->tabWidget->tabText(index) + " *");
+}
+
+void little_help() {
+
+}
+
+void MainWindow::on_plainTextEdit_cursorPositionChanged() {
+    QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(ui->tabWidget->currentIndex()));
+    QTextCursor tCursor = pTextEdit->textCursor();
+    int colPos = tCursor.columnNumber();
+    ui->lcdNumber->display(colPos);
+    int rowPos = tCursor.block().blockNumber();
+    ui->lcdNumber_2->display(rowPos);
+    //on_plainTextEdit_textChanged();
+}
+
+void MainWindow::on_plainTextEdit_textChanged() {
+    QString FileName = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
+    if (FileName.contains('*')) {
+        return;
+    }
+    else {
+        QFile file(ui->tabWidget->tabText(ui->tabWidget->currentIndex()));
+        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), "" + ui->tabWidget->tabText(ui->tabWidget->currentIndex()) + " *");
+            return;
+        }
+        QTextStream in(&file);
+        QString ty = in.readAll();
+        QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(ui->tabWidget->currentIndex()));
+        QString str = pTextEdit->document()->toPlainText();
+        if (str.isEmpty() != true && str != ty) {
+            ui->tabWidget->setTabText(ui->tabWidget->currentIndex(), "" + ui->tabWidget->tabText(ui->tabWidget->currentIndex()) + " *");
+            return;
+        }
+    }
+}
+
+void MainWindow::on_actionShow_status_bar_triggered()
+{
+    ui->dockWidget_2->setVisible(true);
+}
+
+void MainWindow::on_tabWidget_tabBarClicked(int index)
+{
+    ui->lcdNumber->display(0);
+    ui->lcdNumber_2->display(0);
 }
