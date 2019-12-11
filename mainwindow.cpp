@@ -27,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget(ui->tabWidget);
     setWindowTitle("Text Editor");
     setupEditor(editor1);
-
 }
 
 MainWindow::~MainWindow()
@@ -38,12 +37,13 @@ MainWindow::~MainWindow()
 void MainWindow::closeEvent(QCloseEvent *event) {
     QPlainTextEdit * pTextEdit;
     for (int i = 0; i < ui->tabWidget->count(); ++i) {
+        QString fileName = ui->tabWidget->tabText(i);
+        if (fileName.contains('*')) {
+            fileName.resize(fileName.count() - 2);
+        }
         pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(i));
         QString str = pTextEdit->document()->toPlainText();
-        QFile file(ui->tabWidget->tabText(i));
-        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-            QApplication::quit();
-        }
+        QFile file(fileName);
         QTextStream in(&file);
         QString ty = in.readAll();
         if (str.isEmpty() == false && str != ty) {
@@ -74,8 +74,6 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 
 void MainWindow::on_actionNew_triggered()
 {
-    ui->lcdNumber->display(0);
-    ui->lcdNumber_2->display(0);
     QPlainTextEdit * helper = new QPlainTextEdit();
     setupEditor(helper);
     ui->tabWidget->addTab(helper, QString("default %0").arg(ui->tabWidget->count() + 1));
@@ -86,16 +84,22 @@ void MainWindow::on_actionNew_triggered()
     if (ui->listView->isVisible() == true) {
         on_actionShow_second_thing_triggered();
     }
+    on_tabWidget_tabBarClicked(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_actionOpen_triggered()
 {
     QString fileName = QFileDialog::getOpenFileName(this, "Open");
     setFile(fileName);
+    on_tabWidget_tabBarClicked(ui->tabWidget->currentIndex());
+
 }
 
 void MainWindow::setFile(QString &fileName) {
-    ui->tabWidget->addTab(new QPlainTextEdit(), fileName);
+    QPlainTextEdit * helper = new QPlainTextEdit();
+    ui->tabWidget->addTab(helper, fileName);
+    connect(helper, SIGNAL(cursorPositionChanged()), SLOT(on_plainTextEdit_cursorPositionChanged()));
+    connect(helper, SIGNAL(textChanged()), SLOT(on_plainTextEdit_textChanged()));
     ui->tabWidget->setCurrentIndex(ui->tabWidget->count() - 1);
     QFile file(fileName);
     currentFile = fileName;
@@ -148,12 +152,13 @@ void MainWindow::on_actionExit_triggered()
 {
     QPlainTextEdit * pTextEdit;
     for (int i = 0; i < ui->tabWidget->count(); ++i) {
+        QString fileName = ui->tabWidget->tabText(i);
+        if (fileName.contains('*')) {
+            fileName.resize(fileName.count() - 2);
+        }
         pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(i));
         QString str = pTextEdit->document()->toPlainText();
-        QFile file(ui->tabWidget->tabText(i));
-        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-            QApplication::quit();
-        }
+        QFile file(fileName);
         QTextStream in(&file);
         QString ty = in.readAll();
         if (str.isEmpty() == false && str != ty) {
@@ -253,6 +258,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index)
     if (ui->listView->isVisible() == true) {
         on_actionShow_second_thing_triggered();
     }
+    on_tabWidget_tabBarClicked(ui->tabWidget->currentIndex());
 }
 
 void MainWindow::on_actionSave_2_triggered()
@@ -297,7 +303,8 @@ void MainWindow::on_actionClose_all_triggered()
     for (int i = 0; i < ui->tabWidget->count(); ++i) {
         pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(i));
         QString str = pTextEdit->document()->toPlainText();
-        if (str.isEmpty() == false) {
+        QString fileName = ui->tabWidget->tabText(i);
+        if (fileName.contains('*')) {
                 QMessageBox msgBox;
                 msgBox.setText("The document " + ui->tabWidget->tabText(i) + " has been modified.");
                 msgBox.setInformativeText("Do you want to save your changes?");
@@ -325,6 +332,9 @@ void MainWindow::on_actionClose_all_triggered()
     if (ui->listView->isVisible() == true) {
         on_actionShow_second_thing_triggered();
     }
+    ui->lcdNumber->display(0);
+    ui->lcdNumber_2->display(0);
+    ui->lcdNumber_3->display(0);
 }
 
 
@@ -396,10 +406,6 @@ void MainWindow::text_in_tab_edited(int index) {
     ui->tabWidget->setTabText(index, "" + ui->tabWidget->tabText(index) + " *");
 }
 
-void little_help() {
-
-}
-
 void MainWindow::on_plainTextEdit_cursorPositionChanged() {
     QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(ui->tabWidget->currentIndex()));
     QTextCursor tCursor = pTextEdit->textCursor();
@@ -411,6 +417,10 @@ void MainWindow::on_plainTextEdit_cursorPositionChanged() {
 }
 
 void MainWindow::on_plainTextEdit_textChanged() {
+    QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(ui->tabWidget->currentIndex()));
+    QString numberOfSigns = pTextEdit->toPlainText();
+    int num = numberOfSigns.count();
+    ui->lcdNumber_3->display(num);
     QString FileName = ui->tabWidget->tabText(ui->tabWidget->currentIndex());
     if (FileName.contains('*')) {
         return;
@@ -441,4 +451,8 @@ void MainWindow::on_tabWidget_tabBarClicked(int index)
 {
     ui->lcdNumber->display(0);
     ui->lcdNumber_2->display(0);
+    QPlainTextEdit * pTextEdit = qobject_cast<QPlainTextEdit *>(ui->tabWidget->widget(index));
+    QString numberOfSigns = pTextEdit->toPlainText();
+    int num = numberOfSigns.count();
+    ui->lcdNumber_3->display(num);
 }

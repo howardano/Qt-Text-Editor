@@ -646,9 +646,9 @@
     <widget class="QLCDNumber" name="lcdNumber">
      <property name="geometry">
       <rect>
-       <x>43</x>
+       <x>53</x>
        <y>0</y>
-       <width>91</width>
+       <width>81</width>
        <height>31</height>
       </rect>
      </property>
@@ -718,6 +718,38 @@
      </property>
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
+     </property>
+    </widget>
+    <widget class="QLCDNumber" name="lcdNumber_3">
+     <property name="geometry">
+      <rect>
+       <x>330</x>
+       <y>0</y>
+       <width>101</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>290</x>
+       <y>0</y>
+       <width>71</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Times New Roman</family>
+       <pointsize>10</pointsize>
+      </font>
+     </property>
+     <property name="text">
+      <string>Signs</string>
      </property>
     </widget>
    </widget>
